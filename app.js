@@ -60,6 +60,17 @@ deliveryPreviewTemplate.className = 'delivery-preview';
 deliveryPreviewTemplate.hidden = true;
 deliveryPreviewTemplate.innerHTML = '<span>Message to be delivered (Korean)</span><p id="delivery-message"></p>';
 document.querySelector('.agency-list').before(deliveryPreviewTemplate);
+const ripCurrentNotice = document.createElement('li');
+ripCurrentNotice.className = 'rip-current-notice';
+document.querySelector('.caution-card ul').prepend(ripCurrentNotice);
+const ripCurrentCopy = {
+  en: 'Demo alert: Strong rip-current conditions are expected today. Do not enter the water near breakwaters, rocks, or outside designated lifeguard zones.',
+  ko: '데모 경보: 오늘 이안류가 강할 것으로 예상됩니다. 방파제·갯바위 주변과 안전요원이 있는 지정 구역 밖에는 들어가지 마세요.',
+  zh: '演示警报：预计今天离岸流较强。请勿在防波堤、礁石附近或救生员指定区域外下水。',
+  ja: 'デモ警報：本日は離岸流が強くなる見込みです。防波堤・岩場の周辺や、ライフガードのいる指定区域外には入水しないでください。',
+  es: 'Alerta de demostración: Hoy se esperan fuertes corrientes de resaca. No entre al agua cerca de rompeolas, rocas ni fuera de las zonas vigiladas por socorristas.'
+};
+const applyRipCurrentCopy = () => { ripCurrentNotice.textContent = ripCurrentCopy[currentLanguage]; };
 const applyReportUiCopy = () => {
   const copy = reportUiCopy[currentLanguage];
   const label = document.querySelector('#translation-panel label');
@@ -241,6 +252,7 @@ applyLanguage = (language) => {
   previousApplyLanguage(language);
   detailedSelectors.forEach((selector, index) => { const element = document.querySelector(selector); if (element) element.textContent = detailedCopy[language][index]; });
   applyReportUiCopy();
+  applyRipCurrentCopy();
 };
 document.querySelector('#language-toggle').addEventListener('click', () => { const menu = document.querySelector('#language-menu'); menu.hidden = !menu.hidden; });
 document.querySelectorAll('#language-menu button').forEach((button) => button.addEventListener('click', () => { applyLanguage(button.dataset.language); document.querySelector('#language-menu').hidden = true; }));

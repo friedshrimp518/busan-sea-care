@@ -11,11 +11,11 @@ let selectedSituationKey = '';
 let locationText = 'Haeundae Beach, Busan (location unavailable)';
 let currentLanguage = 'en';
 const reportUiCopy = {
-  en: { detailLabel: 'Add a short detail (optional)', placeholder: 'Example: I cannot find my family and need help.', deliveryLabel: 'Message to be delivered (Korean)', translating: 'Translating to Korean…', translated: 'Translated to Korean with DeepL', unavailable: 'Translation unavailable', connection: 'DeepL connection is needed for Korean translation', additional: 'Additional details', send: 'Send message (demo)', sent: 'Message sent (demo)' },
-  ko: { detailLabel: '추가 설명 입력 (선택)', placeholder: '예: 가족을 찾을 수 없어 도움이 필요합니다.', deliveryLabel: '실제 전송될 문자 (한국어)', translating: '한국어로 번역 중…', translated: 'DeepL로 한국어 번역 완료', unavailable: '번역을 사용할 수 없습니다', connection: '한국어 번역을 위해 DeepL 연결이 필요합니다', additional: '추가 설명', send: '문자 보내기 (데모)', sent: '메시지 전송 완료 (데모)' },
-  zh: { detailLabel: '添加简短说明（可选）', placeholder: '示例：我找不到家人，需要帮助。', deliveryLabel: '实际发送的信息（韩语）', translating: '正在翻译成韩语…', translated: '已通过 DeepL 翻译成韩语', unavailable: '翻译不可用', connection: '需要连接 DeepL 才能翻译成韩语', additional: '补充说明', send: '发送信息（演示）', sent: '信息已发送（演示）' },
-  ja: { detailLabel: '追加情報を入力（任意）', placeholder: '例：家族が見つからず、助けが必要です。', deliveryLabel: '実際に送信されるメッセージ（韓国語）', translating: '韓国語に翻訳中…', translated: 'DeepLで韓国語に翻訳しました', unavailable: '翻訳を利用できません', connection: '韓国語への翻訳にはDeepL接続が必要です', additional: '追加情報', send: 'メッセージ送信（デモ）', sent: 'メッセージ送信済み（デモ）' },
-  es: { detailLabel: 'Añade un detalle breve (opcional)', placeholder: 'Ejemplo: No encuentro a mi familia y necesito ayuda.', deliveryLabel: 'Mensaje que se enviará (coreano)', translating: 'Traduciendo al coreano…', translated: 'Traducido al coreano con DeepL', unavailable: 'Traducción no disponible', connection: 'Se necesita conexión con DeepL para traducir al coreano', additional: 'Detalles adicionales', send: 'Enviar mensaje (demo)', sent: 'Mensaje enviado (demo)' }
+  en: { detailLabel: 'Add a short detail (optional)', placeholder: 'Example: I cannot find my family and need help.', deliveryLabel: 'Message to be delivered (Korean)', translating: 'Translating to Korean…', translated: 'Translated to Korean with DeepL', unavailable: 'Translation unavailable', connection: 'DeepL connection is needed for Korean translation', additional: 'Additional details', send: 'Open SMS app', sent: 'Message app opened. Review and tap Send.' },
+  ko: { detailLabel: '추가 설명 입력 (선택)', placeholder: '예: 가족을 찾을 수 없어 도움이 필요합니다.', deliveryLabel: '실제 전송될 문자 (한국어)', translating: '한국어로 번역 중…', translated: 'DeepL로 한국어 번역 완료', unavailable: '번역을 사용할 수 없습니다', connection: '한국어 번역을 위해 DeepL 연결이 필요합니다', additional: '추가 설명', send: '문자 앱 열기', sent: '문자 앱이 열렸습니다. 내용을 확인하고 전송하세요.' },
+  zh: { detailLabel: '添加简短说明（可选）', placeholder: '示例：我找不到家人，需要帮助。', deliveryLabel: '实际发送的信息（韩语）', translating: '正在翻译成韩语…', translated: '已通过 DeepL 翻译成韩语', unavailable: '翻译不可用', connection: '需要连接 DeepL 才能翻译成韩语', additional: '补充说明', send: '打开短信应用', sent: '短信应用已打开。请确认后发送。' },
+  ja: { detailLabel: '追加情報を入力（任意）', placeholder: '例：家族が見つからず、助けが必要です。', deliveryLabel: '実際に送信されるメッセージ（韓国語）', translating: '韓国語に翻訳中…', translated: 'DeepLで韓国語に翻訳しました', unavailable: '翻訳を利用できません', connection: '韓国語への翻訳にはDeepL接続が必要です', additional: '追加情報', send: 'メッセージアプリを開く', sent: 'メッセージアプリを開きました。確認して送信してください。' },
+  es: { detailLabel: 'Añade un detalle breve (opcional)', placeholder: 'Ejemplo: No encuentro a mi familia y necesito ayuda.', deliveryLabel: 'Mensaje que se enviará (coreano)', translating: 'Traduciendo al coreano…', translated: 'Traducido al coreano con DeepL', unavailable: 'Traducción no disponible', connection: 'Se necesita conexión con DeepL para traducir al coreano', additional: 'Detalles adicionales', send: 'Abrir aplicación de mensajes', sent: 'Se abrió la aplicación de mensajes. Revísalo y toca Enviar.' }
 };
 
 shell.append(marine, facility, smsScreen);
@@ -136,7 +136,13 @@ const buildReport = () => {
   };
   document.querySelectorAll('.agency-button').forEach((button) => button.onclick = () => chooseAgency(button));
   chooseAgency(document.querySelector('.agency-button'));
-  smsLink.onclick = () => { document.querySelector('#sent-confirmation').hidden = false; smsLink.textContent = uiCopy.sent; };
+  smsLink.onclick = () => {
+    const recipient = '01026597174';
+    const separator = /iPad|iPhone|iPod/.test(navigator.userAgent) ? '&' : '?';
+    document.querySelector('#sent-confirmation').hidden = false;
+    document.querySelector('#sent-confirmation span').textContent = uiCopy.sent;
+    window.location.href = `sms:${recipient}${separator}body=${encodeURIComponent(smsLink.dataset.message)}`;
+  };
 };
 const locateAndReport = () => {
   const openReport = () => { buildReport(); activate(smsScreen); };

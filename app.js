@@ -7,6 +7,7 @@ const facility = document.querySelector('#facility-screen');
 const smsScreen = document.querySelector('#sms-screen');
 const shell = document.querySelector('.app-shell');
 let selectedSituation = '';
+let selectedSituationKey = '';
 let locationText = 'Haeundae Beach, Busan (location unavailable)';
 let currentLanguage = 'en';
 
@@ -47,22 +48,40 @@ translationPanelTemplate.className = 'translation-panel';
 translationPanelTemplate.hidden = true;
 translationPanelTemplate.innerHTML = '<label for="translation-input">Add a short detail (optional)</label><textarea id="translation-input" rows="2" maxlength="280" placeholder="Example: I cannot find my family and need help."></textarea><small id="translation-status" aria-live="polite"></small>';
 document.querySelector('.agency-list').before(translationPanelTemplate);
+const deliveryPreviewTemplate = document.createElement('section');
+deliveryPreviewTemplate.className = 'delivery-preview';
+deliveryPreviewTemplate.hidden = true;
+deliveryPreviewTemplate.innerHTML = '<span>Message to be delivered (Korean)</span><p id="delivery-message"></p>';
+document.querySelector('.agency-list').before(deliveryPreviewTemplate);
 
 const buildReport = () => {
   const reportTemplates = { en: `I am at ${locationText} and I am facing ${selectedSituation}. Please send help.`, ko: `저는 ${locationText}에 있고 ${selectedSituation} 상황에 처해 있습니다. 도움을 보내주세요.`, zh: `我在${locationText}，正面临${selectedSituation}。请提供帮助。`, ja: `私は${locationText}にいて、${selectedSituation}の状況にあります。助けを送ってください。`, es: `Estoy en ${locationText} y me enfrento a ${selectedSituation}. Por favor, envíen ayuda.` };
   const message = reportTemplates[currentLanguage];
+  const koreanSituations = {
+    'a marine accident or drifting situation': '해양 사고 또는 표류 상황',
+    'a missing person situation': '실종자 상황',
+    'a medical emergency': '의료 응급상황',
+    'a safety threat or crime': '안전 위협 또는 범죄 상황',
+    'a fire or dangerous smoke situation': '화재 또는 위험한 연기 상황',
+    'another emergency situation': '기타 응급상황'
+  };
+  const koreanMessage = `저는 ${locationText}에 있고 ${koreanSituations[selectedSituationKey] || '응급상황'}에 처해 있습니다. 도움을 보내주세요.`;
   document.querySelector('#gps-location').textContent = locationText;
   document.querySelector('#report-message').textContent = message;
   const smsLink = document.querySelector('#sms-link');
   const translationPanel = document.querySelector('#translation-panel');
   const translationInput = document.querySelector('#translation-input');
   const translationStatus = document.querySelector('#translation-status');
+  const deliveryPreview = document.querySelector('.delivery-preview');
+  const deliveryMessage = document.querySelector('#delivery-message');
   let translatedDetail = '';
   let translationTimer;
   const refreshMessage = () => {
-    const detail = translatedDetail ? `\n\nAdditional details (Korean): ${translatedDetail}` : '';
-    document.querySelector('#report-message').textContent = `${message}${detail}`;
-    smsLink.dataset.message = `${document.querySelector('.agency-button.selected')?.dataset.agency || 'Emergency'} report: ${message}${detail}`;
+    const sourceDetail = translationInput.value.trim() ? `\n\nAdditional details: ${translationInput.value.trim()}` : '';
+    const koreanDetail = translatedDetail ? `\n\n추가 설명: ${translatedDetail}` : '';
+    document.querySelector('#report-message').textContent = `${message}${sourceDetail}`;
+    deliveryMessage.textContent = `${koreanMessage}${koreanDetail}`;
+    smsLink.dataset.message = `${document.querySelector('.agency-button.selected')?.dataset.agency || 'Emergency'} report: ${koreanMessage}${koreanDetail}`;
   };
   const translateWithDeepL = async (text) => {
     if (!text.trim()) { translatedDetail = ''; translationStatus.textContent = ''; refreshMessage(); return; }
@@ -84,6 +103,7 @@ const buildReport = () => {
     refreshMessage();
   };
   translationPanel.hidden = false;
+  deliveryPreview.hidden = false;
   translationInput.value = '';
   translationStatus.textContent = '';
   translationInput.oninput = () => {
@@ -109,7 +129,7 @@ const locateAndReport = () => {
     openReport();
   }, openReport, { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 });
 };
-document.querySelectorAll('.situation-card').forEach((button) => button.addEventListener('click', () => { selectedSituation = button.querySelector('span').textContent; locateAndReport(); }));
+document.querySelectorAll('.situation-card').forEach((button) => button.addEventListener('click', () => { selectedSituation = button.querySelector('span').textContent; selectedSituationKey = button.dataset.situation; locateAndReport(); }));
 
 const placeName = document.querySelector('#place-name');
 const placeKind = document.querySelector('#place-kind');

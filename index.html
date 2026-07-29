@@ -75,6 +75,86 @@
       </div>
     </section>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="app.js?v=20260729-i18n"></script>
+  </body>
+</html>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Busan Sea Care</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell" aria-live="polite">
+      <section id="home-screen" class="screen active" aria-label="Busan Sea Care home">
+        <header class="hero">
+          <div class="brand"><span class="brand-mark">≈</span><span>Busan<br /><b>Sea Care</b></span></div>
+          <p>Stay safe by the sea</p>
+          <span class="status"><i></i> Busan, Korea · 26°C</span>
+        </header>
+
+        <button id="report-button" class="report-button" type="button" aria-label="Open emergency report options">
+          <span class="warning-icon">!</span>
+          <span>REPORT</span>
+          <small>EMERGENCY</small>
+        </button>
+
+        <section class="conditions card" aria-label="Marine conditions">
+          <div class="card-title"><span>〰</span><h2>Marine Conditions</h2><button type="button">Details ›</button></div>
+          <div class="weather-grid">
+            <div><span class="weather-icon">♨</span><strong>26°<small>C</small></strong><p>Sea temperature</p></div>
+            <div><span class="weather-icon">〰</span><strong>0.5<small>m</small></strong><p>Wave height</p></div>
+            <div><span class="weather-icon">◈</span><strong class="good">Good</strong><p>Water quality</p></div>
+          </div>
+        </section>
+
+        <section class="facilities card" aria-label="Nearby facilities">
+          <div class="card-title"><span>⌖</span><h2>Nearby Facilities</h2></div>
+          <div class="facility-grid">
+            <button type="button"><span class="facility-icon store">▰</span><b>Convenience<br />Store</b></button>
+            <button type="button"><span class="facility-icon restroom">♟</span><b>Restroom</b></button>
+            <button type="button"><span class="facility-icon info">i</span><b>Information</b></button>
+          </div>
+          <button class="map-button" type="button">⌖ &nbsp; View Map</button>
+        </section>
+        <nav><a class="selected">⌂<span>Home</span></a><a>♢<span>Safety</span></a><a>⌖<span>Map</span></a><a>♙<span>Profile</span></a></nav>
+      </section>
+
+      <section id="emergency-screen" class="screen" aria-label="Emergency phone options">
+        <header class="emergency-header"><button id="back-button" type="button" aria-label="Go back">‹</button><h1>Emergency Call</h1></header>
+        <div class="emergency-content situation-content"><p class="instruction">What is happening now?</p><div class="situation-grid"><button class="situation-card" data-situation="a marine accident or drifting situation" type="button"><b>~</b><span>Marine accident</span></button><button class="situation-card" data-situation="a missing person situation" type="button"><b>?</b><span>Missing person</span></button><button class="situation-card" data-situation="a medical emergency" type="button"><b>+</b><span>Medical emergency</span></button><button class="situation-card" data-situation="a safety threat or crime" type="button"><b>!</b><span>Safety threat</span></button><button class="situation-card" data-situation="a fire or dangerous smoke situation" type="button"><b>*</b><span>Fire or smoke</span></button><button class="situation-card" data-situation="another emergency situation" type="button"><b>...</b><span>Other emergency</span></button></div><p class="location-note">Select a situation to use your current location.</p><button id="cancel-button" class="cancel" type="button">Cancel</button></div>
+      </section>
+      <section id="sms-screen" class="screen sms-screen" aria-label="Emergency report message"><header class="emergency-header sms-header"><button id="sms-back-button" type="button" aria-label="Go back">&lt;</button><h1>Send Emergency Report</h1></header><div class="sms-content"><div class="gps-status"><b>GPS location</b><span id="gps-location">Finding your location...</span></div><section class="message-preview"><span>Automatic message</span><p id="report-message">Preparing your report...</p></section><p class="instruction">Choose the agency for this situation</p><div class="agency-list"><button class="agency-button" data-agency="122 Coast Guard" type="button"><b>122</b><span>Coast Guard<br /><small>Marine emergencies</small></span></button><button class="agency-button" data-agency="112 Police" type="button"><b>112</b><span>Police<br /><small>Safety threats and crime</small></span></button><button class="agency-button" data-agency="119 Fire &amp; Ambulance" type="button"><b>119</b><span>Fire &amp; Ambulance<br /><small>Fire and medical emergencies</small></span></button></div><button id="sms-link" class="sms-link" type="button">Send message (demo)</button><small class="send-note">Demo recipient: 010-2659-7174. No real message will be sent.</small><div id="sent-confirmation" class="sent-confirmation" hidden><b>Message sent</b><span>Demo report delivered successfully.</span></div></div></section>
+    </main>
+    <section id="marine-screen" class="screen marine-screen" aria-label="Marine information and AI analysis">
+      <header class="emergency-header marine-header"><button id="marine-back-button" type="button" aria-label="Go back">&lt;</button><h1>Marine Information</h1></header>
+      <div class="marine-content">
+        <div class="location-line"><b>Haeundae Beach, Busan</b><small>Updated now</small></div>
+        <section class="ocean-overview">
+          <div><span>Air temperature</span><strong>26<small> C</small></strong><em>Partly cloudy</em></div>
+          <div><span>Sea temperature</span><strong>24.1<small> C</small></strong><em>Comfortable</em></div>
+          <div><span>Wave height</span><strong>0.5<small> m</small></strong><em>Low waves</em></div>
+        </section>
+        <section class="detail-card"><h2>More conditions</h2><div class="detail-grid"><p><span>Wind</span><b>NW 12 km/h</b></p><p><span>Tide</span><b>1.2 m rising</b></p><p><span>Visibility</span><b>Good - 10 km</b></p><p><span>UV index</span><b>High - 7</b></p></div></section>
+        <section class="ai-card"><div class="ai-badge">AI ANALYSIS</div><h2>Good conditions for coastal activities</h2><p>Low waves and good visibility make this a generally safe time for beach walks and swimming near lifeguard zones. Stay aware of changing currents.</p><div class="score"><span>Safety score</span><b>82</b><i><u></u></i><small>/100</small></div></section>
+        <section class="caution-card"><div class="caution-head"><span>!</span><div><h2>Today's caution</h2><p>High UV index and tide change at 16:40</p></div></div><ul><li>Use sunscreen and drink water regularly.</li><li>Keep away from rocks as the tide rises.</li><li>Do not enter the water if a warning flag is raised.</li></ul></section>
+      </div>
+    </section>
+    <section id="facility-screen" class="screen facility-screen" aria-label="Nearby facilities map">
+      <header class="emergency-header facility-header"><button id="facility-back-button" type="button" aria-label="Go back">&lt;</button><h1>Nearby Facilities</h1></header>
+      <div class="facility-content">
+        <div class="filter-row" role="group" aria-label="Facility type"><button class="filter active" data-type="All" type="button">All</button><button class="filter" data-type="Store" type="button">Store</button><button class="filter" data-type="Restroom" type="button">Restroom</button><button class="filter" data-type="Info" type="button">Info</button><button class="filter" data-type="Pharmacy" type="button">Pharmacy</button><button class="filter" data-type="Locker" type="button">Locker</button><button class="filter" data-type="Charging" type="button">Charging</button><button class="filter" data-type="Accessible" type="button">Accessible</button></div>
+        <section class="map-panel" aria-label="Map centered on Haeundae Beach"><div class="water-label">HAEUNDAE BEACH</div><div class="road road-a"></div><div class="road road-b"></div><span class="you-pin">You</span><button class="map-pin store-pin" data-name="CU Haeundae Beach" data-kind="Store" type="button">S</button><button class="map-pin restroom-pin" data-name="Public Restroom" data-kind="Restroom" type="button">R</button><button class="map-pin info-pin" data-name="Tourist Information" data-kind="Info" type="button">i</button><button class="map-pin pharmacy-pin" data-name="Haeundae Pharmacy" data-kind="Pharmacy" type="button">+</button><button class="map-pin locker-pin" data-name="Haeundae Luggage Locker" data-kind="Locker" type="button">L</button><button class="map-pin charge-pin" data-name="Phone Charging Station" data-kind="Charging" type="button">C</button><button class="map-pin access-pin" data-name="Wheelchair & Stroller Rental" data-kind="Accessible" type="button">A</button><div class="map-scale">200 m</div></section>
+        <section class="place-sheet"><span id="place-kind">Convenience store</span><h2 id="place-name">CU Haeundae Beach</h2><p id="place-distance">120 m away - Open now</p><button type="button">Get directions</button></section>
+      </div>
+    </section>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

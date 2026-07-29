@@ -10,6 +10,13 @@ let selectedSituation = '';
 let selectedSituationKey = '';
 let locationText = 'Haeundae Beach, Busan (location unavailable)';
 let currentLanguage = 'en';
+const reportUiCopy = {
+  en: { detailLabel: 'Add a short detail (optional)', placeholder: 'Example: I cannot find my family and need help.', deliveryLabel: 'Message to be delivered (Korean)', translating: 'Translating to Korean…', translated: 'Translated to Korean with DeepL', unavailable: 'Translation unavailable', connection: 'DeepL connection is needed for Korean translation', additional: 'Additional details', send: 'Send message (demo)', sent: 'Message sent (demo)' },
+  ko: { detailLabel: '추가 설명 입력 (선택)', placeholder: '예: 가족을 찾을 수 없어 도움이 필요합니다.', deliveryLabel: '실제 전송될 문자 (한국어)', translating: '한국어로 번역 중…', translated: 'DeepL로 한국어 번역 완료', unavailable: '번역을 사용할 수 없습니다', connection: '한국어 번역을 위해 DeepL 연결이 필요합니다', additional: '추가 설명', send: '문자 보내기 (데모)', sent: '메시지 전송 완료 (데모)' },
+  zh: { detailLabel: '添加简短说明（可选）', placeholder: '示例：我找不到家人，需要帮助。', deliveryLabel: '实际发送的信息（韩语）', translating: '正在翻译成韩语…', translated: '已通过 DeepL 翻译成韩语', unavailable: '翻译不可用', connection: '需要连接 DeepL 才能翻译成韩语', additional: '补充说明', send: '发送信息（演示）', sent: '信息已发送（演示）' },
+  ja: { detailLabel: '追加情報を入力（任意）', placeholder: '例：家族が見つからず、助けが必要です。', deliveryLabel: '実際に送信されるメッセージ（韓国語）', translating: '韓国語に翻訳中…', translated: 'DeepLで韓国語に翻訳しました', unavailable: '翻訳を利用できません', connection: '韓国語への翻訳にはDeepL接続が必要です', additional: '追加情報', send: 'メッセージ送信（デモ）', sent: 'メッセージ送信済み（デモ）' },
+  es: { detailLabel: 'Añade un detalle breve (opcional)', placeholder: 'Ejemplo: No encuentro a mi familia y necesito ayuda.', deliveryLabel: 'Mensaje que se enviará (coreano)', translating: 'Traduciendo al coreano…', translated: 'Traducido al coreano con DeepL', unavailable: 'Traducción no disponible', connection: 'Se necesita conexión con DeepL para traducir al coreano', additional: 'Detalles adicionales', send: 'Enviar mensaje (demo)', sent: 'Mensaje enviado (demo)' }
+};
 
 shell.append(marine, facility, smsScreen);
 const screens = [home, emergency, marine, facility, smsScreen];
@@ -53,10 +60,20 @@ deliveryPreviewTemplate.className = 'delivery-preview';
 deliveryPreviewTemplate.hidden = true;
 deliveryPreviewTemplate.innerHTML = '<span>Message to be delivered (Korean)</span><p id="delivery-message"></p>';
 document.querySelector('.agency-list').before(deliveryPreviewTemplate);
+const applyReportUiCopy = () => {
+  const copy = reportUiCopy[currentLanguage];
+  const label = document.querySelector('#translation-panel label');
+  const input = document.querySelector('#translation-input');
+  const deliveryLabel = document.querySelector('.delivery-preview span');
+  if (label) label.textContent = copy.detailLabel;
+  if (input) input.placeholder = copy.placeholder;
+  if (deliveryLabel) deliveryLabel.textContent = copy.deliveryLabel;
+};
 
 const buildReport = () => {
   const reportTemplates = { en: `I am at ${locationText} and I am facing ${selectedSituation}. Please send help.`, ko: `저는 ${locationText}에 있고 ${selectedSituation} 상황에 처해 있습니다. 도움을 보내주세요.`, zh: `我在${locationText}，正面临${selectedSituation}。请提供帮助。`, ja: `私は${locationText}にいて、${selectedSituation}の状況にあります。助けを送ってください。`, es: `Estoy en ${locationText} y me enfrento a ${selectedSituation}. Por favor, envíen ayuda.` };
   const message = reportTemplates[currentLanguage];
+  const uiCopy = reportUiCopy[currentLanguage];
   const koreanSituations = {
     'a marine accident or drifting situation': '해양 사고 또는 표류 상황',
     'a missing person situation': '실종자 상황',
@@ -77,7 +94,7 @@ const buildReport = () => {
   let translatedDetail = '';
   let translationTimer;
   const refreshMessage = () => {
-    const sourceDetail = translationInput.value.trim() ? `\n\nAdditional details: ${translationInput.value.trim()}` : '';
+    const sourceDetail = translationInput.value.trim() ? `\n\n${uiCopy.additional}: ${translationInput.value.trim()}` : '';
     const koreanDetail = translatedDetail ? `\n\n추가 설명: ${translatedDetail}` : '';
     document.querySelector('#report-message').textContent = `${message}${sourceDetail}`;
     deliveryMessage.textContent = `${koreanMessage}${koreanDetail}`;
@@ -85,7 +102,7 @@ const buildReport = () => {
   };
   const translateWithDeepL = async (text) => {
     if (!text.trim()) { translatedDetail = ''; translationStatus.textContent = ''; refreshMessage(); return; }
-    translationStatus.textContent = 'Translating to Korean…';
+    translationStatus.textContent = uiCopy.translating;
     try {
       if (!window.DEEPL_PROXY_URL) throw new Error('DeepL proxy is not configured');
       const response = await fetch(window.DEEPL_PROXY_URL, {
@@ -95,10 +112,10 @@ const buildReport = () => {
       if (!response.ok) throw new Error('Translation request failed');
       const data = await response.json();
       translatedDetail = data.translation || data.translations?.[0]?.text || '';
-      translationStatus.textContent = translatedDetail ? 'Translated to Korean with DeepL' : 'Translation unavailable';
+      translationStatus.textContent = translatedDetail ? uiCopy.translated : uiCopy.unavailable;
     } catch {
       translatedDetail = text;
-      translationStatus.textContent = 'DeepL connection is needed for Korean translation';
+      translationStatus.textContent = uiCopy.connection;
     }
     refreshMessage();
   };
@@ -110,7 +127,7 @@ const buildReport = () => {
     clearTimeout(translationTimer);
     translationTimer = setTimeout(() => translateWithDeepL(translationInput.value), 500);
   };
-  smsLink.textContent = 'Send message (demo)';
+  smsLink.textContent = uiCopy.send;
   document.querySelector('#sent-confirmation').hidden = true;
   const chooseAgency = (button) => {
     document.querySelectorAll('.agency-button').forEach((item) => item.classList.remove('selected'));
@@ -119,7 +136,7 @@ const buildReport = () => {
   };
   document.querySelectorAll('.agency-button').forEach((button) => button.onclick = () => chooseAgency(button));
   chooseAgency(document.querySelector('.agency-button'));
-  smsLink.onclick = () => { document.querySelector('#sent-confirmation').hidden = false; smsLink.textContent = 'Message sent (demo)'; };
+  smsLink.onclick = () => { document.querySelector('#sent-confirmation').hidden = false; smsLink.textContent = uiCopy.sent; };
 };
 const locateAndReport = () => {
   const openReport = () => { buildReport(); activate(smsScreen); };
@@ -213,7 +230,12 @@ const detailedCopy = {
 };
 const detailedSelectors = ['.conditions .card-title button', '.weather-grid div:nth-child(1) p', '.weather-grid div:nth-child(2) p', '.weather-grid div:nth-child(3) p', '.weather-grid .good', '.facility-grid button:nth-child(1) b', '.facility-grid button:nth-child(2) b', '.facility-grid button:nth-child(3) b', '.location-line small', '.ocean-overview div:nth-child(1) span', '.ocean-overview div:nth-child(2) span', '.ocean-overview div:nth-child(3) span', '.ocean-overview div:nth-child(1) em', '.ocean-overview div:nth-child(2) em', '.ocean-overview div:nth-child(3) em', '.detail-card h2', '.detail-grid p:nth-child(1) span', '.detail-grid p:nth-child(2) span', '.detail-grid p:nth-child(3) span', '.detail-grid p:nth-child(4) span', '.score span', '.caution-card h2', '.caution-head p', '.filter:nth-child(1)', '.filter:nth-child(2)', '.filter:nth-child(3)', '.filter:nth-child(4)', '.filter:nth-child(5)', '.filter:nth-child(6)', '.filter:nth-child(7)', '.filter:nth-child(8)', '.place-sheet button', '.situation-card:nth-child(1) span', '.situation-card:nth-child(2) span', '.situation-card:nth-child(3) span', '.situation-card:nth-child(4) span', '.situation-card:nth-child(5) span', '.situation-card:nth-child(6) span', '#emergency-screen .location-note', '#sms-screen .gps-status b', '#sms-screen .message-preview span', '.agency-button:nth-child(1) span', '.agency-button:nth-child(1) small', '.agency-button:nth-child(2) span', '.agency-button:nth-child(2) small', '.agency-button:nth-child(3) span', '.agency-button:nth-child(3) small', '.send-note', '#sent-confirmation b', '#sent-confirmation span'];
 const previousApplyLanguage = applyLanguage;
-applyLanguage = (language) => { currentLanguage = language; previousApplyLanguage(language); detailedSelectors.forEach((selector, index) => { const element = document.querySelector(selector); if (element) element.textContent = detailedCopy[language][index]; }); };
+applyLanguage = (language) => {
+  currentLanguage = language;
+  previousApplyLanguage(language);
+  detailedSelectors.forEach((selector, index) => { const element = document.querySelector(selector); if (element) element.textContent = detailedCopy[language][index]; });
+  applyReportUiCopy();
+};
 document.querySelector('#language-toggle').addEventListener('click', () => { const menu = document.querySelector('#language-menu'); menu.hidden = !menu.hidden; });
 document.querySelectorAll('#language-menu button').forEach((button) => button.addEventListener('click', () => { applyLanguage(button.dataset.language); document.querySelector('#language-menu').hidden = true; }));
 applyLanguage(localStorage.getItem('busan-sea-care-language') || 'en');

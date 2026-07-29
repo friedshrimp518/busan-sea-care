@@ -14,7 +14,10 @@ const activate = (screen) => { screens.forEach((item) => item.classList.remove('
 const showHome = () => activate(home);
 const showEmergency = () => activate(emergency);
 const showMarine = () => activate(marine);
-const showFacilities = () => activate(facility);
+const showFacilities = () => {
+  activate(facility);
+  window.requestAnimationFrame(() => window.busanNearbyMap?.invalidateSize());
+};
 
 const conditionsCard = document.querySelector('.conditions');
 conditionsCard.setAttribute('role', 'button');
@@ -76,34 +79,37 @@ document.querySelectorAll('.filter').forEach((filter) => filter.addEventListener
 }));
 
 const mapPanel = document.querySelector('.map-panel');
-if (window.GOOGLE_MAPS_API_KEY) {
+if (window.L) {
   const mapHost = document.createElement('div');
-  mapHost.id = 'google-map';
+  mapHost.id = 'nearby-map';
   mapPanel.replaceChildren(mapHost);
-  window.initBusanNearbyMap = () => {
-    const map = new google.maps.Map(mapHost, { center: { lat: 35.16125, lng: 129.16080 }, zoom: 16, mapTypeControl: false, streetViewControl: false });
-    const facilities = [
-      { kind: 'Store', name: 'Convenience Store', position: { lat: 35.16162, lng: 129.15942 } },
-      { kind: 'Restroom', name: 'Public Restroom', position: { lat: 35.16074, lng: 129.16182 } },
-      { kind: 'Info', name: 'Tourist Information', position: { lat: 35.16110, lng: 129.15895 } },
-      { kind: 'Pharmacy', name: 'Pharmacy', position: { lat: 35.16228, lng: 129.16150 } },
-      { kind: 'Locker', name: 'Luggage Locker', position: { lat: 35.16186, lng: 129.16078 } },
-      { kind: 'Charging', name: 'Phone Charging', position: { lat: 35.16096, lng: 129.16010 } },
-      { kind: 'Accessible', name: 'Wheelchair & Stroller Rental', position: { lat: 35.16203, lng: 129.16212 } }
-    ];
-    const markers = facilities.map((facility) => {
-      const marker = new google.maps.Marker({ map, position: facility.position, title: facility.name });
-      marker.addListener('click', () => { placeName.textContent = facility.name; placeKind.textContent = facility.kind; placeDistance.textContent = 'Nearby - Open now'; });
-      return { ...facility, marker };
-    });
-    new google.maps.Marker({ map, position: { lat: 35.16125, lng: 129.16080 }, title: 'Your location', icon: { path: google.maps.SymbolPath.CIRCLE, scale: 8, fillColor: '#073967', fillOpacity: 1, strokeColor: '#ffffff', strokeWeight: 3 } });
-    window.updateNearbyMarkers = (kind) => markers.forEach((item) => item.marker.setMap(kind === 'All' || item.kind === kind ? map : null));
-  };
-  const mapsScript = document.createElement('script');
-  mapsScript.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(window.GOOGLE_MAPS_API_KEY)}&callback=initBusanNearbyMap`;
-  mapsScript.async = true;
-  mapsScript.defer = true;
-  document.head.append(mapsScript);
+  const map = L.map(mapHost, { zoomControl: true, attributionControl: true }).setView([35.16125, 129.16080], 16);
+  window.busanNearbyMap = map;
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+  const facilities = [
+    { kind: 'Store', name: 'Convenience Store', icon: '▰', position: [35.16162, 129.15942] },
+    { kind: 'Restroom', name: 'Public Restroom', icon: 'R', position: [35.16074, 129.16182] },
+    { kind: 'Info', name: 'Tourist Information', icon: 'i', position: [35.16110, 129.15895] },
+    { kind: 'Pharmacy', name: 'Pharmacy', icon: '+', position: [35.16228, 129.16150] },
+    { kind: 'Locker', name: 'Luggage Locker', icon: 'L', position: [35.16186, 129.16078] },
+    { kind: 'Charging', name: 'Phone Charging', icon: 'C', position: [35.16096, 129.16010] },
+    { kind: 'Accessible', name: 'Wheelchair & Stroller Rental', icon: 'A', position: [35.16203, 129.16212] }
+  ];
+  const markerColor = { Store: '#21ad72', Restroom: '#147bd9', Info: '#8443d0', Pharmacy: '#ed5950', Locker: '#f2a828', Charging: '#9a55d5', Accessible: '#168f9e' };
+  const markers = facilities.map((item) => {
+    const marker = L.marker(item.position, { icon: L.divIcon({ className: 'facility-marker', html: `<span style="background:${markerColor[item.kind]}">${item.icon}</span>`, iconSize: [34, 34], iconAnchor: [17, 34] }) }).addTo(map);
+    marker.bindTooltip(item.name, { direction: 'top', offset: [0, -30] });
+    marker.on('click', () => { placeName.textContent = item.name; placeKind.textContent = item.kind; placeDistance.textContent = 'Nearby - Open now'; });
+    return { ...item, marker };
+  });
+  L.circleMarker([35.16125, 129.16080], { radius: 8, fillColor: '#073967', color: '#fff', weight: 3, fillOpacity: 1 }).addTo(map).bindTooltip('Your location');
+  window.updateNearbyMarkers = (kind) => markers.forEach((item) => {
+    if (kind === 'All' || item.kind === kind) item.marker.addTo(map);
+    else item.marker.remove();
+  });
 }
 
 const translations = {

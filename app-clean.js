@@ -255,6 +255,7 @@ const fullScreenCopy = {
 };
 const applyFullScreenCopy = () => {
   const copy = fullScreenCopy[currentLanguage];
+  const emergencyBadgeCopy = { en: 'EMERGENCY', ko: '긴급 신고', zh: '紧急', ja: '緊急', es: 'EMERGENCIA' };
   document.querySelector('#marine-screen h1').textContent = copy.marineHeader;
   document.querySelector('#facility-screen h1').textContent = copy.facilityHeader;
   document.querySelector('.ai-badge').textContent = copy.analysis;
@@ -262,6 +263,7 @@ const applyFullScreenCopy = () => {
   document.querySelector('.ai-card p').textContent = copy.analysisText;
   document.querySelector('.conditions .card-title').dataset.analysisLabel = copy.analysisLink;
   document.querySelector('#cancel-button').textContent = copy.cancel;
+  document.querySelector('#report-button small').textContent = emergencyBadgeCopy[currentLanguage];
   document.querySelectorAll('.caution-card li:not(.rip-current-notice)').forEach((item, index) => { item.textContent = copy.caution[index]; });
   document.querySelectorAll('.agency-button').forEach((button, index) => {
     const [name, detail] = copy.agency[index];

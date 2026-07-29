@@ -39,18 +39,61 @@ document.querySelector('#marine-back-button').addEventListener('click', showHome
 document.querySelector('#facility-back-button').addEventListener('click', showHome);
 document.querySelector('#sms-back-button').addEventListener('click', showEmergency);
 
+const translationPanelTemplate = document.createElement('section');
+translationPanelTemplate.id = 'translation-panel';
+translationPanelTemplate.className = 'translation-panel';
+translationPanelTemplate.hidden = true;
+translationPanelTemplate.innerHTML = '<label for="translation-input">Add a short detail (optional)</label><textarea id="translation-input" rows="2" maxlength="280" placeholder="Example: I cannot find my family and need help."></textarea><small id="translation-status" aria-live="polite"></small>';
+document.querySelector('.agency-list').before(translationPanelTemplate);
+
 const buildReport = () => {
   const reportTemplates = { en: `I am at ${locationText} and I am facing ${selectedSituation}. Please send help.`, ko: `저는 ${locationText}에 있고 ${selectedSituation} 상황에 처해 있습니다. 도움을 보내주세요.`, zh: `我在${locationText}，正面临${selectedSituation}。请提供帮助。`, ja: `私は${locationText}にいて、${selectedSituation}の状況にあります。助けを送ってください。`, es: `Estoy en ${locationText} y me enfrento a ${selectedSituation}. Por favor, envíen ayuda.` };
   const message = reportTemplates[currentLanguage];
   document.querySelector('#gps-location').textContent = locationText;
   document.querySelector('#report-message').textContent = message;
   const smsLink = document.querySelector('#sms-link');
+  const translationPanel = document.querySelector('#translation-panel');
+  const translationInput = document.querySelector('#translation-input');
+  const translationStatus = document.querySelector('#translation-status');
+  let translatedDetail = '';
+  let translationTimer;
+  const refreshMessage = () => {
+    const detail = translatedDetail ? `\n\nAdditional details (Korean): ${translatedDetail}` : '';
+    document.querySelector('#report-message').textContent = `${message}${detail}`;
+    smsLink.dataset.message = `${document.querySelector('.agency-button.selected')?.dataset.agency || 'Emergency'} report: ${message}${detail}`;
+  };
+  const translateWithDeepL = async (text) => {
+    if (!text.trim()) { translatedDetail = ''; translationStatus.textContent = ''; refreshMessage(); return; }
+    translationStatus.textContent = 'Translating to Korean…';
+    try {
+      if (!window.DEEPL_PROXY_URL) throw new Error('DeepL proxy is not configured');
+      const response = await fetch(window.DEEPL_PROXY_URL, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, target_lang: 'KO' })
+      });
+      if (!response.ok) throw new Error('Translation request failed');
+      const data = await response.json();
+      translatedDetail = data.translation || data.translations?.[0]?.text || '';
+      translationStatus.textContent = translatedDetail ? 'Translated to Korean with DeepL' : 'Translation unavailable';
+    } catch {
+      translatedDetail = text;
+      translationStatus.textContent = 'DeepL connection is needed for Korean translation';
+    }
+    refreshMessage();
+  };
+  translationPanel.hidden = false;
+  translationInput.value = '';
+  translationStatus.textContent = '';
+  translationInput.oninput = () => {
+    clearTimeout(translationTimer);
+    translationTimer = setTimeout(() => translateWithDeepL(translationInput.value), 500);
+  };
   smsLink.textContent = 'Send message (demo)';
   document.querySelector('#sent-confirmation').hidden = true;
   const chooseAgency = (button) => {
     document.querySelectorAll('.agency-button').forEach((item) => item.classList.remove('selected'));
     button.classList.add('selected');
-    smsLink.dataset.message = `${button.dataset.agency} report: ${message}`;
+    refreshMessage();
   };
   document.querySelectorAll('.agency-button').forEach((button) => button.onclick = () => chooseAgency(button));
   chooseAgency(document.querySelector('.agency-button'));

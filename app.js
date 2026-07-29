@@ -1,3 +1,5 @@
+window.DEEPL_PROXY_URL = window.DEEPL_PROXY_URL || 'https://busan-sea-care-translate.lucas-j-hwang10.workers.dev/';
+
 const home = document.querySelector('#home-screen');
 const emergency = document.querySelector('#emergency-screen');
 const marine = document.querySelector('#marine-screen');
